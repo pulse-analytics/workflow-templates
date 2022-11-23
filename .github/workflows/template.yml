@@ -74,30 +74,20 @@ jobs:
 
       - name: Get version tag.
         id: tag
-        if: (github.ref == 'refs/heads/main') && (github.ref_type == 'tag') 
+        if: github.ref_type == 'tag'
         uses: dawidd6/action-get-tag@v1
 
-      - name: Tag version and push.
+      - name: Tag version and "production", and push.
         id: docker_build_production_version
-        if: (github.ref == 'refs/heads/main') && (github.ref_type == 'tag') 
+        if: github.ref_type == 'tag'
         uses: docker/build-push-action@v3
         with:
           context: ./
           push: true
           file: ./Dockerfile
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.tag.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Tag "production" and push.
-        id: docker_build_production
-        if: github.ref == 'refs/heads/main'
-        uses: docker/build-push-action@v3
-        with:
-          context: ./
-          push: true
-          file: ./Dockerfile
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:production
+          tags: |
+            ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.tag.outputs.tag }}
+            ${{ env.REGISTRY }}/${{ github.repository }}:production
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -120,12 +110,12 @@ jobs:
 
       - name: Configure production AWS credentials.
         uses: aws-actions/configure-aws-credentials@v1-node16
-        if: github.ref == 'refs/heads/main'
+        if: github.ref_type == 'tag'
         with:
           role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID}}:role/${{ github.event.repository.name }}-production-github-role
           aws-region: ${{ env.AWS_REGION }}
       
       - name: Update production ECS service.
-        if: github.ref == 'refs/heads/main'
+        if: github.ref_type == 'tag'
         run: |
           aws ecs update-service --cluster pulse-production --service ${{ inputs.SERVICE_NAME }}-production --force-new-deployment
