@@ -47,10 +47,6 @@ jobs:
           echo "//npm.pkg.github.com/:_authToken=${{ secrets.NPM_TOKEN }}" > .npmrc
           echo "@pulse-analytics:registry=https://npm.pkg.github.com" >> .npmrc
 
-      - name: Get version tag.
-        id: tag
-        uses: dawidd6/action-get-tag@v1
-
       - name: Authenticate into GitHub Container Registry.
         uses: docker/login-action@v2
         with:
@@ -58,7 +54,7 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build, tag "latest", and push image.
+      - name: Build, tag "latest", and push.
         id: docker_build_staging
         if: github.ref == 'refs/heads/develop'
         uses: docker/build-push-action@v3
@@ -70,7 +66,24 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Tag "production" and version, and push image.
+      - name: Get version tag.
+        id: tag
+        if: (github.ref == 'refs/heads/main') && (github.ref_type == 'tag') 
+        uses: dawidd6/action-get-tag@v1
+
+      - name: Tag version and push.
+        id: docker_build_production_version
+        if: (github.ref == 'refs/heads/main') && (github.ref_type == 'tag') 
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          push: true
+          file: ./Dockerfile
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.tag.outputs.tag }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Tag "production" and push.
         id: docker_build_production
         if: github.ref == 'refs/heads/main'
         uses: docker/build-push-action@v3
@@ -78,9 +91,7 @@ jobs:
           context: ./
           push: true
           file: ./Dockerfile
-          tags: |
-            ${{ env.REGISTRY }}/${{ github.repository }}:production
-            ${{ env.REGISTRY }}/${{ github.repository }}:${{steps.tag.outputs.tag}}
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:production
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
