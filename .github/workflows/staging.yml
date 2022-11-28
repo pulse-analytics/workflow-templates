@@ -1,4 +1,4 @@
-name: Build Image, Deploy Production ECS
+name: Build Image, Deploy Staging ECS
 
 on:
   workflow_call:
@@ -54,31 +54,14 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get version tag.
-        id: tag
-        if: github.ref_type == 'tag'
-        uses: dawidd6/action-get-tag@v1
-
-      - name: Tag version and push.
-        id: docker_build_version
-        if: github.ref_type == 'tag'
+      - name: Build, tag "latest", and push.
+        id: docker_build_staging
         uses: docker/build-push-action@v3
         with:
           context: ./
           push: true
           file: ./Dockerfile
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ steps.tag.outputs.tag }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
-      - name: Tag "production" and push.
-        id: docker_build_production_version
-        uses: docker/build-push-action@v3
-        with:
-          context: ./
-          push: true
-          file: ./Dockerfile
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:production
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -87,12 +70,12 @@ jobs:
           echo ${{ steps.docker_build_staging.outputs.digest }}
           echo ${{ steps.docker_build_production.outputs.digest }}
 
-      - name: Configure production AWS credentials.
+      - name: Configure staging AWS credentials.
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID}}:role/${{ github.event.repository.name }}-production-github-role
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID}}:role/${{ github.event.repository.name }}-staging-github-role
           aws-region: ${{ env.AWS_REGION }}
-      
-      - name: Update production ECS service.
+
+      - name: Update staging ECS service.
         run: |
-          aws ecs update-service --cluster pulse-production --service ${{ inputs.SERVICE_NAME }}-production --force-new-deployment
+          aws ecs update-service --cluster pulse-staging --service ${{ inputs.SERVICE_NAME }}-staging --force-new-deployment
