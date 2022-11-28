@@ -20,6 +20,8 @@ jobs:
     with:
       SERVICE_NAME: <service_name>
       AWS_ACCOUNT_ID: <aws_account_id>
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
 
 ### Production
@@ -38,4 +40,6 @@ jobs:
     with:
       SERVICE_NAME: <service_name>
       AWS_ACCOUNT_ID: <aws_account_id>
+    secrets:
+      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 ```
