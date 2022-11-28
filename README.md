@@ -6,7 +6,7 @@ To reference and use templates, create a `.yml` file in your `/.github/workflows
 
 ### Staging
 ```yml
-name: Build, Deploy
+name: Build, Deploy Staging
 
 on:
   push:
@@ -15,7 +15,7 @@ on:
 
 jobs:
   from-template:
-    name: Pulse Template
+    name: Staging Template
     uses: pulse-analytics/workflow-templates/.github/workflows/staging.yml@main
     with:
       SERVICE_NAME: <service_name>
@@ -24,7 +24,7 @@ jobs:
 
 ### Production
 ```yml
-name: Build, Deploy
+name: Build, Deploy Production
 
 on:
   release:
@@ -33,8 +33,8 @@ on:
 
 jobs:
   from-template:
-    name: Pulse Template
-    uses: pulse-analytics/workflow-templates/.github/workflows/template.yml@main
+    name: Production Template
+    uses: pulse-analytics/workflow-templates/.github/workflows/production.yml@main
     with:
       SERVICE_NAME: <service_name>
       AWS_ACCOUNT_ID: <aws_account_id>
