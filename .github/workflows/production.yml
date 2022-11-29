@@ -1,4 +1,4 @@
-name: Build Image, Deploy Production ECS
+name: Build Image, Deploy ECS
 
 on:
   workflow_call:
@@ -9,6 +9,12 @@ on:
         AWS_ACCOUNT_ID:
           required: true
           type: number
+        IMAGE_TAG:
+          required: true
+          type: string
+        ENVIRONMENT:
+          required: true
+          type: string
     secrets:
       NPM_TOKEN:
         required: false
@@ -54,12 +60,23 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Build, tag, and push.
+        id: docker_build
+        uses: docker/build-push-action@v3
+        with:
+          context: ./
+          push: true
+          file: ./Dockerfile
+          tags: ${{ env.REGISTRY }}/${{ github.repository }}:${{ inputs.IMAGE_TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
       - name: Get version tag.
         id: tag
         if: github.ref_type == 'tag'
         uses: dawidd6/action-get-tag@v1
 
-      - name: Tag version and push.
+      - name: Tag version.
         id: docker_build_version
         if: github.ref_type == 'tag'
         uses: docker/build-push-action@v3
@@ -71,28 +88,16 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Tag "production" and push.
-        id: docker_build_production_version
-        uses: docker/build-push-action@v3
-        with:
-          context: ./
-          push: true
-          file: ./Dockerfile
-          tags: ${{ env.REGISTRY }}/${{ github.repository }}:production
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-
       - name: Print image digest.
         run: |
-          echo ${{ steps.docker_build_staging.outputs.digest }}
-          echo ${{ steps.docker_build_production.outputs.digest }}
+          echo ${{ steps.docker_build.outputs.digest }}
 
-      - name: Configure production AWS credentials.
+      - name: Configure AWS credentials.
         uses: aws-actions/configure-aws-credentials@v1-node16
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID}}:role/${{ github.event.repository.name }}-production-github-role
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID}}:role/${{ github.event.repository.name }}-${{ inputs.ENVIRONMENT }}-github-role
           aws-region: ${{ env.AWS_REGION }}
       
-      - name: Update production ECS service.
+      - name: Update ECS service.
         run: |
-          aws ecs update-service --cluster pulse-production --service ${{ inputs.SERVICE_NAME }}-production --force-new-deployment
+          aws ecs update-service --cluster pulse-${{ inputs.ENVIRONMENT }} --service ${{ inputs.SERVICE_NAME }}-${{ inputs.ENVIRONMENT }} --force-new-deployment
