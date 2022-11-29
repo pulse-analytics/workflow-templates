@@ -16,7 +16,7 @@ on:
 jobs:
   from-template:
     name: Main Template
-    uses: pulse-analytics/workflow-templates/.github/workflows/production.yml@main
+    uses: pulse-analytics/workflow-templates/.github/workflows/main.yml@main
     with:
       SERVICE_NAME: <service_name>
       AWS_ACCOUNT_ID: <aws_account_id>
@@ -38,7 +38,7 @@ on:
 jobs:
   from-template:
     name: Main Template
-    uses: pulse-analytics/workflow-templates/.github/workflows/production.yml@main
+    uses: pulse-analytics/workflow-templates/.github/workflows/main.yml@main
     with:
       SERVICE_NAME: <service_name>
       AWS_ACCOUNT_ID: <aws_account_id>
@@ -60,7 +60,7 @@ on:
 jobs:
   from-template:
     name: Main Template
-    uses: pulse-analytics/workflow-templates/.github/workflows/production.yml@main
+    uses: pulse-analytics/workflow-templates/.github/workflows/main.yml@main
     with:
       SERVICE_NAME: <service_name>
       AWS_ACCOUNT_ID: <aws_account_id>
