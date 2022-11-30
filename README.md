@@ -24,6 +24,7 @@ jobs:
       ENVIRONMENT: demo
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CALLER_GITHUB_TOKEN: ${{ secrets.CR_PAT }}
 ```
 
 ### Staging Example
@@ -46,6 +47,7 @@ jobs:
       ENVIRONMENT: staging
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CALLER_GITHUB_TOKEN: ${{ secrets.CR_PAT }}
 ```
 
 ### Production Example
@@ -68,4 +70,5 @@ jobs:
       ENVIRONMENT: production
     secrets:
       NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      CALLER_GITHUB_TOKEN: ${{ secrets.CR_PAT }}
 ```
